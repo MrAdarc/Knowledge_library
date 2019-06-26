@@ -65,3 +65,11 @@ zz_素材库
 [RVIZ官网教程](http://wiki.ros.org/rviz)</br>
 
 说明：由于部分网站资料公司网站无法访问，例如ros、rviz的官方教程，这里将官方教程整理为PDF文件进行上传，存在 “00_相关资料 -> 00_官网”文件夹下
+
+
+
+
+Librviz:
+IncorporatingRVizintoaCustomGUI
+
+RvizinStereo

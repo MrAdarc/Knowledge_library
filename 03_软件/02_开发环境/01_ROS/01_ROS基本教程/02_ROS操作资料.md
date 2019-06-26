@@ -153,8 +153,36 @@ source ~/catkin_ws/devel/setup.bash
 
 ## 2.创建通讯（创建消息）
 ### （1）创建话题（msg）
-#### ①文件编辑规则
-#### ②其他文件修改
+&#8195;&#8195;msg文件是ROS中的简单的文本文件，用以记录消息的类型
+```
+<msg_name>.msg   //msg文件标记
+```
+#### 1)msg文件类型
+```
+int8, int16, int32, int64 (plus uint*)
+float32, float64
+string
+time, duration
+other msg files
+variable-length array[] and fixed-length array[C]
+```
+&#8195;&#8195;其中other msg file文件的使用方式为：
+```
+<msg_name>/<msg_member_name> <member_name>
+```
+#### 2)文件编辑规则
+&#8195;&#8195;msg文件的编写较为简单，由消息类型与消息成员的形式以列表的方式进行编写
+```
+//示范
+<msg_type1> <msg_member1>
+<msg_type2> <msg_member2>   
+
+//示例
+string child_frame_id
+geometry_msgs/PoseWithCovariance pose
+geometry_msgs/TwistWithCovariance twist
+```
+#### 3)其他文件修改
 **package.xml中添加功能依赖包**
 ```
 <build_depend> message_generation </build_depend>
@@ -170,10 +198,30 @@ rospy std_msgs message_runtime)
 add_message_files(FILES Person.msg)
 generate_messages(DEPENDENCIES std_msgs）
 ```
+|检索|作用|一般|
+|:-:|:-:|:-:|
+|搜寻find_package(catkin|添加包的依赖库（包括信息依赖与其他依赖|roscpp</br>rospy</br>std_msgs</br>generate_messages|
+|catkin_package|添加信息依赖|message_runtime|
+|add_message_files|添加信息文件|\|
+|generate_messages|生成工程中的|std_msgs|
+### 4)msg文件的相关操作
+&#8195;&#8195;msg文件存放在包下的src/msg目录下。
+```
+echo "<msg_type> <member_name>" >
+```
 
 ### （2）创建服务（srv）
-#### ①文件编辑规则
-#### ②其他文件修改
+&#8195;&#8195;srv的消息类型同msg文件的消息类型相同，不同的地方在于src文件的内容格式划分为两个部分，这两个部分使用“---”进行隔开
+#### 1)文件编辑规则
+```
+<srv_type1> <request_member1>
+<srv_type2> <request_member2>
+---
+<srv_type3> <response_member1>
+<srv_type4> <response_membersrv
+```
+#### 2)其他文件修改
+&#8195;&#8195;srv文件存放在包下的src/srv目录下。
 **package.xml中添加功能依赖包**
 ```
 <build_depend> message_generation</build_depend>
@@ -188,9 +236,11 @@ rospy std_msgs message_runtime)
 
 add_service_files(FILES AddTwoInts.srv)
 ```
+#### 3)srv文件的相关操作
+
 ### （3）创建动作（action）
-#### ①文件编辑规则
-#### ②其他文件修改
+#### 1)文件编辑规则
+#### 2)其他文件修改
 **package.xml中添加功能依赖包**
 ```
 <build_depend>actionlib</build_depend>
@@ -208,6 +258,197 @@ generate_messages(DEPENDENCIES actionlib_msgs)
 ### （4）创建参数配置文件（param）
 
 ## 3.其他文件编写规则
+### （1）launch文件
+**运行launch**
+```
+roslaunch [package] [filename.launch]  //运行包中的launch文件
+```
+**编写规则**
+
+### （2）CMakeLists.txt文件
+```
+###############################################
+##        ROS的消息声明（话题、服务、动作）       ##
+###############################################
+## cmake版本信息及功能包名称
+cmake_minimum_required(VERSION 2.8.3)
+project(<package_name>)
+## 添加编译器
+# add_compile_options(-std=c++11)
+## 添加功能包的依赖包
+# find_package(catkin REQUIRED COMPONENTS
+  <dependence_package_name1>
+  <dependence_package_name2>
+# )
+
+## 未知
+# find_package(Boost REQUIRED COMPONENTS system)
+
+##
+# catkin_python_setup()
+######################################################################
+## 处理对象：                                                         ##
+##     <package_name>：功能包名                                       ##
+##     <dependence_package_name1>：功能包的依赖包1名                   ##
+##     <dependence_package_name1>：功能包的依赖包1名                   ##
+######################################################################
+
+###############################################
+##        ROS的消息声明（话题、服务、动作）       ##
+###############################################
+## 在src/msg目录下生成消息文件
+# add_message_files(
+#   FILES
+#   <msg_name>.msg
+# )
+
+## 在src/msg目录下生成消息文件
+# add_service_files(
+#   FILES
+#   <srv_name>.srv
+# )
+
+## 在src/msg目录下生成消息文件
+# add_action_files(
+#   FILES
+#   <act_name>.action
+# )
+
+## 添加消息/服务的依赖
+# generate_messages(
+#   DEPENDENCIES
+#   <msg_dep_package>
+# )
+
+######################################################################
+## 处理对象：                                                         ##
+##     <msg_name>.msg：msg文件名                                      ##
+##     <srv_name>.srv：srv文件名                                      ##
+##     <act_name>.action：action文件名                                ##
+##     <msg_dep_package>：消息相关依赖包                               ##
+######################################################################
+
+################################################
+##             ROS的动态参数声明               ##
+################################################
+## Generate dynamic reconfigure parameters in the 'cfg' folder
+# generate_dynamic_reconfigure_options(
+#   cfg/DynReconf1.cfg
+#   cfg/DynReconf2.cfg
+# )
+
+###################################
+## catkin specific configuration ##
+###################################
+# catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES using_markers
+#  CATKIN_DEPENDS roscpp visualization_msgs
+#  DEPENDS system_lib
+# )
+
+
+################################################
+##                   构建                     ##
+################################################
+## 添加本地头文件
+##>>>>>>对功能包
+# include_directories(include ${catkin_INCLUDE_DIRS})
+## 声明C++库
+# add_library(${PROJECT_NAME} src/${PROJECT_NAME}/using_markers.cpp)
+## 对库添加依赖
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+##>>>>>>对节点
+## 声明C++可执行程序
+# add_executable(${PROJECT_NAME}_node src/using_markers_node.cpp)
+## 对节点进行重命名，去掉后缀（.cpp）
+# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+## 添加node的依赖
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+## 连接到库或者可执行目标上
+# target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
+
+######################################################################
+## 处理对象：                                                        ##
+##     ${PROJECT_NAME}：功能包名                                     ##
+##     ${PROJECT_NAME}_node：节点名                                  ##
+######################################################################
+
+
+###############################################
+##                    安装                    ##
+###############################################
+##
+# install(PROGRAMS
+#   scripts/my_python_script
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+## Mark executables and/or libraries for installation
+# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+## Mark cpp header files for installation
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
+
+###############################################
+##                   测试                    ##
+###############################################
+
+## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_using_markers.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
+
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)
+```
+&#8195;&#8195;因为CMakeLists.txt文件记录着从工程到节点，以及从源文件到生成文件的一系列信息，因此，在对工程的内容进行创建的过程中，为便于进行开发，这里将关键词列表，根据相关的操作操作来检索需要进行配置的位置，通过查找替换的方式进行操作:
+```
+功能包的相关配置
+消息的相关配置
+   检索:
+     msg:Message1.msg
+     srv:Service1.srv
+     act:Action1.action
+   替换:
+     msg:<msg_name>.msg
+     srv:<srv_name>.srv
+     act:<act_name>.action
+   去注释化：
+     msg:add_message_files
+     srv:add_service_files
+     act:add_action_files
+   添加:
+     find_package(catkin
+     catkin_package
+     generate_messages
+动态参数的配置
+节点配置
+   检索：${PROJECT_NAME}_node
+   替换：<node_name>
+   去注释化：
+      add_executable
+      add_dependencies
+      target_link_libraries
+安装配置
+```
+
 
 ## 4.文件编辑流程
 
@@ -424,4 +665,60 @@ int64 sum
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 </robot>
+```
+# 附录15 Commend line
+## 1.rosnode
+```
+rosnode list 查看当前运行节点
+rosnode info <node_name>查看节点信息
+rosnode ping <node_name>测试节点
+rosrun [package_name] [node_name] 运行节点
+```
+## 2.rostopic
+```
+rostopic -h 查看rostopic的帮助
+    rostopic bw     display bandwidth used by topic
+    rostopic echo   print messages to screen
+    rostopic hz     display publishing rate of topic
+        rostopic hz [topic]    
+    rostopic list   print information about active topics
+    rostopic pub    publish data to topic
+        rostopic pub [topic] [msg_type] [args]
+        rostopic pub -1 /turtle1/cmd_vel geometry_msgs/Twist -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, 1.8]'
+    rostopic type   print topic type
+        rostopic type <topic_name>  输出话题<topic_name>的消息类型
+```
+
+## 3.rosservice
+```
+rosservice -h
+    rosservice list         print information about active services
+    rosservice call         call the service with the provided args
+        rosservice call [service] [args]
+        rosservice call /spawn 2 2 0.2 ""
+    rosservice type         print service type
+        rosservice type [service]
+    rosservice find         find services by service type
+    rosservice uri          print service ROSRPC uri
+```
+
+## 4.rosparam
+```
+rosparam set            set parameter
+rosparam get            get parameter
+    rosparam set [param_name] value
+    rosparam get [param_name]
+rosparam load           load parameters from file
+rosparam dump           dump(卸装) parameters to file
+    rosparam dump [file_name] [namespace]
+    rosparam load [file_name] [namespace]
+rosparam delete         delete parameter
+rosparam list           list parameter names
+```
+## 5.常用ROS工具使用
+```
+rosrun rqt_graph rqt_graph  //查看节点关系图
+rosrun rqt_plot rqt_plot  //查看话题中传输的消息数据
+rosrun rqt_console rqt_console
+rosrun rqt_logger_level rqt_logger_level
 ```
