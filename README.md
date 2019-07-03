@@ -66,9 +66,18 @@ zz_素材库
 
 说明：由于部分网站资料公司网站无法访问，例如ros、rviz的官方教程，这里将官方教程整理为PDF文件进行上传，存在 “00_相关资料 -> 00_官网”文件夹下
 
+```python {cmd="/usr/local/bin/python3"}
+print("这个将会运行 python3 程序")
+```
 
-
-
+```gnuplot {cmd=true output="html"}
+set terminal svg
+set title "Simple Plots" font ",20"
+set key left box
+set samples 50
+set style data points
+plot [-10:10] sin(x),atan(x),cos(atan(x))
+```
 Librviz:
 IncorporatingRVizintoaCustomGUI
 
